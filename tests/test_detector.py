@@ -46,7 +46,7 @@ class TestSecretDetector:
 
     def test_detect_high_entropy_secret(self, detector: SecretDetector) -> None:
         # High entropy but no specific pattern
-        var = self._create_variable("JWT_SECRET", "x8f93qjd8c4m1!@#$%^&*()_+-=[]{}|;':,./<>?~`")
+        var = self._create_variable("WEIRD_TOKEN", "x8f93qjd8c4m1!@#$%^&*()_+-=[]{}|;':,./<>?~`")
         findings = detector.scan_variables([var])
         
         assert len(findings) == 1

@@ -33,6 +33,7 @@ class TestHealthScoreEngine:
             name=name,
             sources=(source,),
             statuses=frozenset(statuses or set()),
+            description="A test variable",
         )
 
     def test_compute_perfect_score(self, engine: HealthScoreEngine) -> None:

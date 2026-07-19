@@ -63,7 +63,7 @@ class TestPythonAnalyzer:
         # or at least detects the fields
         assert "APP_HOST" in var_names or "HOST" in var_names
         assert "APP_PORT" in var_names or "PORT" in var_names
-        assert "MY_SECRET_KEY" in var_names
+        assert "APP_MY_SECRET_KEY" in var_names
 
     def test_analyze_hardcoded_secrets(self, analyzer: PythonAnalyzer, tmp_path: Path) -> None:
         content = textwrap.dedent(
