@@ -147,6 +147,12 @@ ignore = [
     "PLC0415",  # inline imports (used in test cases to avoid scope pollution)
     "SIM102",   # nested ifs (sometimes preferred for readability)
     "PERF401",  # list comprehension performance suggestions
+    "RUF001",   # ambiguous unicode characters (intentional for emojis like ℹ️)
+    "RUF012",   # mutable class attributes (intentional for class-level configuration variables)
+    "N815",     # mixedCase in class scope (intentional for ast.NodeVisitor method overrides)
+    "ERA001",   # commented-out code (intentional descriptive comments explaining code constructs)
+    "S104",     # binding to all interfaces (intentional in hostname whitelist sets like 0.0.0.0)
+    "S105",     # possible hardcoded password (intentional enum constant name strings)
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -188,45 +188,45 @@ class PythonAnalyzer:
 
         # Generate findings from hardcoded values
         findings: list[Finding] = []
-        for ref in hardcoded_visitor.references:
-            snippet = self._get_snippet(source_lines, ref.line)
+        for h_ref in hardcoded_visitor.references:
+            snippet = self._get_snippet(source_lines, h_ref.line)
             location = VariableLocation(
                 file_path=relative_path,
-                line=ref.line,
-                column=ref.column,
-                end_line=ref.end_line,
-                end_column=ref.end_column,
+                line=h_ref.line,
+                column=h_ref.column,
+                end_line=h_ref.end_line,
+                end_column=h_ref.end_column,
                 snippet=snippet,
             )
 
-            if ref.is_secret:
+            if h_ref.is_secret:
                 finding = Finding(
                     finding_id=deterministic_id(
-                        "hardcoded_secret", ref.name, f"{relative_path}:{ref.line}"
+                        "hardcoded_secret", h_ref.name, f"{relative_path}:{h_ref.line}"
                     ),
-                    title=f"Hardcoded secret: {ref.name}",
+                    title=f"Hardcoded secret: {h_ref.name}",
                     description=(
-                        f"The variable ``{ref.name}`` appears to be a secret but its value "
-                        f"is hardcoded in ``{relative_path}`` at line {ref.line}. "
+                        f"The variable ``{h_ref.name}`` appears to be a secret but its value "
+                        f"is hardcoded in ``{relative_path}`` at line {h_ref.line}. "
                         f"Hardcoded secrets pose a significant security risk if the code "
                         f"is committed to version control."
                     ),
                     severity=Severity.CRITICAL,
                     category=FindingCategory.HARDCODED_SECRET,
-                    variable_name=ref.name,
+                    variable_name=h_ref.name,
                     locations=(location,),
                     recommendations=(
                         Recommendation(
                             message=(
-                                f"Move ``{ref.name}`` to an environment variable or a "
-                                f"secrets manager. Use ``os.getenv('{ref.name}')`` or a "
+                                f"Move ``{h_ref.name}`` to an environment variable or a "
+                                f"secrets manager. Use ``os.getenv('{h_ref.name}')`` or a "
                                 f"Pydantic ``BaseSettings`` field instead."
                             ),
                             priority=1,
                         ),
                         Recommendation(
                             message=(
-                                f"Ensure ``{ref.name}`` is listed in ``.env.example`` "
+                                f"Ensure ``{h_ref.name}`` is listed in ``.env.example`` "
                                 f"with a placeholder value."
                             ),
                             priority=2,
@@ -243,35 +243,35 @@ class PythonAnalyzer:
                     is_secret=True,
                     raw_value="[REDACTED]",
                 )
-                if ref.name in variables:
-                    var = variables[ref.name].with_source(config_source)
+                if h_ref.name in variables:
+                    var = variables[h_ref.name].with_source(config_source)
                 else:
                     var = ConfigVariable(
-                        name=ref.name,
+                        name=h_ref.name,
                         sources=(config_source,),
                         statuses=frozenset({VariableStatus.HARDCODED}),
                     )
-                variables[ref.name] = var.with_status(VariableStatus.HARDCODED)
+                variables[h_ref.name] = var.with_status(VariableStatus.HARDCODED)
             else:
                 finding = Finding(
                     finding_id=deterministic_id(
-                        "hardcoded_config", ref.name, f"{relative_path}:{ref.line}"
+                        "hardcoded_config", h_ref.name, f"{relative_path}:{h_ref.line}"
                     ),
-                    title=f"Hardcoded configuration: {ref.name}",
+                    title=f"Hardcoded configuration: {h_ref.name}",
                     description=(
-                        f"The variable ``{ref.name}`` is hardcoded in ``{relative_path}`` "
-                        f"at line {ref.line}. Consider using environment variables for "
+                        f"The variable ``{h_ref.name}`` is hardcoded in ``{relative_path}`` "
+                        f"at line {h_ref.line}. Consider using environment variables for "
                         f"configuration that may change between deployments."
                     ),
                     severity=Severity.MEDIUM,
                     category=FindingCategory.HARDCODED_SECRET,
-                    variable_name=ref.name,
+                    variable_name=h_ref.name,
                     locations=(location,),
                     recommendations=(
                         Recommendation(
                             message=(
-                                f"Move ``{ref.name}`` to an environment variable using "
-                                f"``os.getenv('{ref.name}', '{ref.value}')``."
+                                f"Move ``{h_ref.name}`` to an environment variable using "
+                                f"``os.getenv('{h_ref.name}', '{h_ref.value}')``."
                             ),
                             priority=3,
                         ),

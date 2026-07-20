@@ -6,7 +6,6 @@ behaviour, ignore patterns, plugin loading, and output preferences.
 
 from __future__ import annotations
 
-import sys
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field

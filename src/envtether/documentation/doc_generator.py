@@ -250,8 +250,8 @@ em{{color:#64748b;font-style:normal}}
                     cells = [c.strip() for c in stripped.split("|")[1:-1]]
                     for cell in cells:
                         # Convert backtick code
-                        cell = re.sub(r"`([^`]+)`", r"<code>\1</code>", cell)
-                        html_lines.append(f"<td>{cell}</td>")
+                        cell_html = re.sub(r"`([^`]+)`", r"<code>\1</code>", cell)
+                        html_lines.append(f"<td>{cell_html}</td>")
                     html_lines.append("</tr>")
             elif stripped.startswith("|---") or stripped.startswith("| ---"):
                 continue

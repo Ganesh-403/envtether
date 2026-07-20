@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-import networkx as nx  # type: ignore[import-untyped]
+import networkx as nx
 
 if TYPE_CHECKING:
     from envtether.models.config import ConfigVariable

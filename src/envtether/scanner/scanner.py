@@ -219,11 +219,11 @@ class RepositoryScanner:
                     } and not name.startswith(".env."):
                         continue
 
-                if entry.is_dir(follow_symlinks=self._config.follow_symlinks):
+                if entry.is_dir(follow_symlinks=self._config.follow_symlinks):  # type: ignore[call-arg]
                     if name.lower() in {d.lower() for d in ignore_dirs}:
                         continue
                     stack.append((entry, depth + 1))
-                elif entry.is_file(follow_symlinks=self._config.follow_symlinks):
+                elif entry.is_file(follow_symlinks=self._config.follow_symlinks):  # type: ignore[call-arg]
                     # Check ignore patterns
                     if any(fnmatch.fnmatch(name, pat) for pat in ignore_patterns):
                         continue

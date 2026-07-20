@@ -9,7 +9,7 @@ import json
 import logging
 from typing import TYPE_CHECKING
 
-import networkx as nx  # type: ignore[import-untyped]
+import networkx as nx
 
 from envtether.exceptions import GraphExportError
 

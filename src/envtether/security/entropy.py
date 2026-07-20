@@ -18,7 +18,7 @@ def shannon_entropy(data: str) -> float:
 
     Returns:
         The Shannon entropy in bits.  Higher values indicate more randomness.
-        A typical English sentence has entropy ~3.5–4.0.  Random hex/base64
+        A typical English sentence has entropy ~3.5-4.0.  Random hex/base64
         strings typically have entropy > 4.5.
 
     Examples:
@@ -48,7 +48,7 @@ def charset_entropy(data: str) -> float:
     """Calculate entropy relative to the character set used.
 
     This normalises entropy by the theoretical maximum for the observed
-    character set, giving a 0.0–1.0 ratio.
+    character set, giving a 0.0-1.0 ratio.
 
     Args:
         data: The input string.
