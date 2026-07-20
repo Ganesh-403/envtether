@@ -9,14 +9,16 @@ to do.
 from __future__ import annotations
 
 import enum
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
-from .config import VariableLocation
+if TYPE_CHECKING:
+    from .config import VariableLocation
 
 
-class Severity(str, enum.Enum):
+class Severity(enum.StrEnum):
     """Severity level of an analysis finding."""
 
     CRITICAL = "critical"
@@ -26,7 +28,7 @@ class Severity(str, enum.Enum):
     INFO = "info"
 
 
-class FindingCategory(str, enum.Enum):
+class FindingCategory(enum.StrEnum):
     """Broad category of a finding."""
 
     MISSING_VARIABLE = "missing_variable"
@@ -82,7 +84,7 @@ class Finding(BaseModel, frozen=True):
     locations: tuple[VariableLocation, ...] = Field(default_factory=tuple)
     recommendations: tuple[Recommendation, ...] = Field(default_factory=tuple)
     tags: frozenset[str] = Field(default_factory=frozenset)
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))
 
     @property
     def is_fixable(self) -> bool:

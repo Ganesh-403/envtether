@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import logging
-import sys
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from envtether.models.config import (
     ConfigSource,
@@ -13,10 +12,10 @@ from envtether.models.config import (
     VariableLocation,
 )
 
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib  # type: ignore[import-untyped]
+if TYPE_CHECKING:
+    from pathlib import Path
+
+import tomllib  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +45,7 @@ class TOMLAnalyzer:
 
         try:
             data = tomllib.loads(content)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Cannot parse TOML in %s: %s", relative_path, exc)
             return []
 
@@ -72,27 +71,26 @@ class TOMLAnalyzer:
                 self._walk(value, relative_path, source_lines, variables, prefix=full_key)
             elif isinstance(value, list):
                 continue
-            else:
-                if self._is_env_like(key):
-                    line_no = self._find_key_line(source_lines, key)
-                    location = VariableLocation(
-                        file_path=relative_path,
-                        line=line_no,
-                        column=0,
-                        snippet=source_lines[line_no - 1] if line_no <= len(source_lines) else "",
-                    )
-                    source = ConfigSource(
-                        source_type=ConfigSourceType.TOML_FILE,
-                        location=location,
-                        raw_value=str(value) if value is not None else None,
-                        metadata={"toml_path": full_key},
-                    )
-                    var = ConfigVariable(
-                        name=key,
-                        sources=(source,),
-                        tags=frozenset({"toml"}),
-                    )
-                    variables.append(var)
+            elif self._is_env_like(key):
+                line_no = self._find_key_line(source_lines, key)
+                location = VariableLocation(
+                    file_path=relative_path,
+                    line=line_no,
+                    column=0,
+                    snippet=source_lines[line_no - 1] if line_no <= len(source_lines) else "",
+                )
+                source = ConfigSource(
+                    source_type=ConfigSourceType.TOML_FILE,
+                    location=location,
+                    raw_value=str(value) if value is not None else None,
+                    metadata={"toml_path": full_key},
+                )
+                var = ConfigVariable(
+                    name=key,
+                    sources=(source,),
+                    tags=frozenset({"toml"}),
+                )
+                variables.append(var)
 
     @staticmethod
     def _is_env_like(key: str) -> bool:

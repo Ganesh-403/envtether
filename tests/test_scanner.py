@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from envtether.scanner.file_classifier import FileClassifier, FileType
-from envtether.scanner.scanner import RepositoryScanner, ScannedFile
+from envtether.scanner.scanner import RepositoryScanner
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestFileClassifier:
     """Tests for FileClassifier."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def classifier(self) -> FileClassifier:
         return FileClassifier()
 
@@ -52,9 +55,7 @@ class TestFileClassifier:
             ("random.xyz", FileType.OTHER),
         ],
     )
-    def test_classify_exact_and_extension(
-        self, path_str: str, expected: FileType
-    ) -> None:
+    def test_classify_exact_and_extension(self, path_str: str, expected: FileType) -> None:
         from pathlib import PurePosixPath
 
         result = FileClassifier.classify(PurePosixPath(path_str))

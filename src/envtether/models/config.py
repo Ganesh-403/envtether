@@ -13,7 +13,7 @@ from pathlib import PurePosixPath
 from pydantic import BaseModel, Field
 
 
-class ConfigSourceType(str, enum.Enum):
+class ConfigSourceType(enum.StrEnum):
     """How a configuration value is sourced."""
 
     ENV_FILE = "env_file"
@@ -46,7 +46,7 @@ class ConfigSourceType(str, enum.Enum):
     UNKNOWN = "unknown"
 
 
-class VariableStatus(str, enum.Enum):
+class VariableStatus(enum.StrEnum):
     """Analysis status of a configuration variable."""
 
     ACTIVE = "active"

@@ -10,7 +10,7 @@ Extracts environment variables from:
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
 
@@ -20,6 +20,9 @@ from envtether.models.config import (
     ConfigVariable,
     VariableLocation,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -61,9 +64,7 @@ class KubernetesAnalyzer:
             if not isinstance(doc, dict):
                 continue
             kind = doc.get("kind", "")
-            variables.extend(
-                self._extract_from_document(doc, kind, relative_path, source_lines)
-            )
+            variables.extend(self._extract_from_document(doc, kind, relative_path, source_lines))
 
         logger.debug("Parsed %d variables from %s", len(variables), relative_path)
         return variables
@@ -78,14 +79,10 @@ class KubernetesAnalyzer:
         """Extract variables from a single Kubernetes document."""
         variables: list[ConfigVariable] = []
 
-        if kind in {"ConfigMap"}:
-            variables.extend(
-                self._extract_configmap(doc, relative_path, source_lines)
-            )
-        elif kind in {"Secret"}:
-            variables.extend(
-                self._extract_secret(doc, relative_path, source_lines)
-            )
+        if kind == "ConfigMap":
+            variables.extend(self._extract_configmap(doc, relative_path, source_lines))
+        elif kind == "Secret":
+            variables.extend(self._extract_secret(doc, relative_path, source_lines))
         else:
             # Look for container env definitions in pod specs
             spec = doc.get("spec", {})
@@ -178,7 +175,9 @@ class KubernetesAnalyzer:
                     var = ConfigVariable(
                         name=name,
                         sources=(source,),
-                        tags=frozenset({"kubernetes", f"kind:{kind}", f"container:{container_name}"}),
+                        tags=frozenset(
+                            {"kubernetes", f"kind:{kind}", f"container:{container_name}"}
+                        ),
                     )
                     variables.append(var)
 

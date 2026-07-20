@@ -8,12 +8,13 @@ from __future__ import annotations
 import fnmatch
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from envtether.models.config import ConfigVariable
-from envtether.models.findings import Finding
-from envtether.scanner.scanner import ScannedFile
+if TYPE_CHECKING:
+    from envtether.models.config import ConfigVariable
+    from envtether.models.findings import Finding
 
-from .protocol import AnalysisContext, PluginProtocol
+    from .protocol import AnalysisContext, PluginProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ class PluginRegistry:
             try:
                 if plugin.can_handle(context):
                     applicable.append(plugin)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.warning("Plugin %s failed can_handle check", plugin.name, exc_info=True)
         return applicable
 
@@ -110,7 +111,7 @@ class PluginRegistry:
                     len(plugin_vars),
                     len(plugin_findings),
                 )
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.warning("Plugin %s failed", plugin.name, exc_info=True)
 
         return variables, findings
@@ -221,17 +222,26 @@ class DjangoPlugin(_BasePlugin):
     _file_indicators = {"manage.py", "settings.py", "wsgi.py", "asgi.py"}
 
     def can_handle(self, context: AnalysisContext) -> bool:
-        return any(
-            Path(f.absolute_path).name.lower() == "manage.py" for f in context.files
-        )
+        return any(Path(f.absolute_path).name.lower() == "manage.py" for f in context.files)
 
 
 class DockerPlugin(_BasePlugin):
     _name = "docker"
     _description = "Docker and Docker Compose support"
     _version = "0.1.0"
-    _supported_files = {"Dockerfile*", "docker-compose*.yml", "docker-compose*.yaml", "compose*.yml"}
-    _file_indicators = {"dockerfile", "docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"}
+    _supported_files = {
+        "Dockerfile*",
+        "docker-compose*.yml",
+        "docker-compose*.yaml",
+        "compose*.yml",
+    }
+    _file_indicators = {
+        "dockerfile",
+        "docker-compose.yml",
+        "docker-compose.yaml",
+        "compose.yml",
+        "compose.yaml",
+    }
 
 
 class TerraformPlugin(_BasePlugin):
@@ -242,9 +252,7 @@ class TerraformPlugin(_BasePlugin):
     _file_indicators = {"*.tf"}
 
     def can_handle(self, context: AnalysisContext) -> bool:
-        return any(
-            Path(f.absolute_path).suffix.lower() == ".tf" for f in context.files
-        )
+        return any(Path(f.absolute_path).suffix.lower() == ".tf" for f in context.files)
 
 
 class AWSPlugin(_BasePlugin):
@@ -293,6 +301,4 @@ class KubernetesPlugin(_BasePlugin):
     _file_indicators = {"deployment.yaml", "service.yaml", "configmap.yaml"}
 
     def can_handle(self, context: AnalysisContext) -> bool:
-        return any(
-            f.file_type.value in {"kubernetes", "helm"} for f in context.files
-        )
+        return any(f.file_type.value in {"kubernetes", "helm"} for f in context.files)

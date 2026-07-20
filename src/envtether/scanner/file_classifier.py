@@ -7,10 +7,13 @@ analysers can be dispatched efficiently.
 from __future__ import annotations
 
 import enum
-from pathlib import PurePosixPath
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import PurePosixPath
 
 
-class FileType(str, enum.Enum):
+class FileType(enum.StrEnum):
     """Broad classification of a configuration-relevant file."""
 
     PYTHON = "python"
@@ -123,14 +126,23 @@ class FileClassifier:
             return FileType.DOCKERFILE
 
         # .env variants with custom suffixes
-        if name_lower.startswith(".env.") and "example" not in name_lower and "sample" not in name_lower and "template" not in name_lower:
+        if (
+            name_lower.startswith(".env.")
+            and "example" not in name_lower
+            and "sample" not in name_lower
+            and "template" not in name_lower
+        ):
             return FileType.ENV_FILE
 
         # Path-based heuristics
         parts = [p.lower() for p in path.parts]
 
         # GitHub Actions workflows
-        if ".github" in parts and "workflows" in parts and path.suffix.lower() in {".yml", ".yaml"}:
+        if (
+            ".github" in parts
+            and "workflows" in parts
+            and path.suffix.lower() in {".yml", ".yaml"}
+        ):
             return FileType.GITHUB_ACTIONS
 
         # CircleCI
@@ -147,9 +159,19 @@ class FileClassifier:
 
         # Kubernetes manifests (heuristic: YAML files with k8s-like names)
         k8s_indicators = {
-            "deployment", "service", "configmap", "secret",
-            "ingress", "namespace", "statefulset", "daemonset",
-            "cronjob", "job", "pod", "pvc", "hpa",
+            "deployment",
+            "service",
+            "configmap",
+            "secret",
+            "ingress",
+            "namespace",
+            "statefulset",
+            "daemonset",
+            "cronjob",
+            "job",
+            "pod",
+            "pvc",
+            "hpa",
         }
         stem_lower = path.stem.lower()
         if any(indicator in stem_lower for indicator in k8s_indicators):

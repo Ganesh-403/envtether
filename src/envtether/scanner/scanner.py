@@ -16,7 +16,7 @@ from pathlib import Path, PurePosixPath
 from pydantic import BaseModel, Field
 
 from envtether.config import ScannerConfig
-from envtether.exceptions import PathNotFoundError, PermissionDeniedError
+from envtether.exceptions import PathNotFoundError
 
 from .file_classifier import FileClassifier, FileType
 
@@ -134,9 +134,7 @@ class RepositoryScanner:
 
         # Classify in parallel
         with ThreadPoolExecutor(max_workers=self._config.concurrency) as pool:
-            future_map = {
-                pool.submit(self._process_file, root, p): p for p in candidates
-            }
+            future_map = {pool.submit(self._process_file, root, p): p for p in candidates}
             for future in as_completed(future_map):
                 result = future.result()
                 if result is not None:
@@ -202,12 +200,22 @@ class RepositoryScanner:
                 if not self._config.include_hidden and name.startswith("."):
                     # Allow specific dotfiles we care about
                     if name not in {
-                        ".env", ".env.example", ".env.sample", ".env.template",
-                        ".env.local", ".env.development", ".env.staging",
-                        ".env.production", ".env.test",
-                        ".github", ".gitlab-ci.yml", ".gitlab-ci.yaml",
-                        ".circleci", ".envtether.toml",
-                        ".dockerignore", ".gitignore",
+                        ".env",
+                        ".env.example",
+                        ".env.sample",
+                        ".env.template",
+                        ".env.local",
+                        ".env.development",
+                        ".env.staging",
+                        ".env.production",
+                        ".env.test",
+                        ".github",
+                        ".gitlab-ci.yml",
+                        ".gitlab-ci.yaml",
+                        ".circleci",
+                        ".envtether.toml",
+                        ".dockerignore",
+                        ".gitignore",
                     } and not name.startswith(".env."):
                         continue
 

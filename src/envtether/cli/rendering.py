@@ -185,9 +185,7 @@ def render_recommendations(health: HealthReport) -> None:
     console.print()
 
 
-def render_variable_explain(
-    name: str, report: FullReport
-) -> None:
+def render_variable_explain(name: str, report: FullReport) -> None:
     """Render detailed explanation of a single variable."""
     matching = [v for v in report.variables if v.name == name]
 
@@ -197,11 +195,13 @@ def render_variable_explain(
 
     var = matching[0]
 
-    console.print(Panel(
-        f"[bold #818cf8]{var.name}[/bold #818cf8]",
-        subtitle=", ".join(s.value for s in var.statuses) if var.statuses else "active",
-        border_style="#334155",
-    ))
+    console.print(
+        Panel(
+            f"[bold #818cf8]{var.name}[/bold #818cf8]",
+            subtitle=", ".join(s.value for s in var.statuses) if var.statuses else "active",
+            border_style="#334155",
+        )
+    )
 
     if var.description:
         console.print(f"  [dim]Description:[/dim] {var.description}")
@@ -221,10 +221,7 @@ def render_variable_explain(
 
     console.print(f"\n  [dim]Used in {len(var.usages)} location(s)[/dim]")
     for usage in var.usages:
-        console.print(
-            f"    • {usage.location.file_path}:{usage.location.line}"
-            f" ({usage.context})"
-        )
+        console.print(f"    • {usage.location.file_path}:{usage.location.line} ({usage.context})")
 
     # Related findings
     related = [f for f in report.findings if f.variable_name == name]

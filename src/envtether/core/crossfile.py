@@ -8,6 +8,7 @@ configuration drift.
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from envtether.models.config import ConfigSourceType, ConfigVariable
 from envtether.models.findings import (
@@ -17,8 +18,10 @@ from envtether.models.findings import (
     Severity,
 )
 from envtether.models.report import CrossFileComparison, DriftEntry
-from envtether.scanner.scanner import ScanResult
 from envtether.utils.hashing import deterministic_id
+
+if TYPE_CHECKING:
+    from envtether.scanner.scanner import ScanResult
 
 logger = logging.getLogger(__name__)
 
@@ -86,13 +89,15 @@ class CrossFileValidator:
             else:
                 for absent_file in absent_from:
                     for present_file in present_in:
-                        drifts.append(DriftEntry(
-                            variable_name=var_name,
-                            source_a=present_file,
-                            source_b=absent_file,
-                            drift_type="missing",
-                            details=f"``{var_name}`` exists in {present_file} but is missing from {absent_file}.",
-                        ))
+                        drifts.append(
+                            DriftEntry(
+                                variable_name=var_name,
+                                source_a=present_file,
+                                source_b=absent_file,
+                                drift_type="missing",
+                                details=f"``{var_name}`` exists in {present_file} but is missing from {absent_file}.",
+                            )
+                        )
 
                 for absent_file in absent_from:
                     existing = missing_from.get(absent_file, frozenset())

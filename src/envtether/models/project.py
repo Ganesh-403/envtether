@@ -7,7 +7,7 @@ import enum
 from pydantic import BaseModel, Field
 
 
-class ProjectType(str, enum.Enum):
+class ProjectType(enum.StrEnum):
     """Detected project framework / tool."""
 
     PYTHON = "python"
@@ -39,7 +39,7 @@ class ProjectType(str, enum.Enum):
     CLOUD_RUN = "cloud_run"
 
 
-class CloudProvider(str, enum.Enum):
+class CloudProvider(enum.StrEnum):
     """Detected cloud provider."""
 
     AWS = "aws"
@@ -53,7 +53,7 @@ class CloudProvider(str, enum.Enum):
     NONE = "none"
 
 
-class ServiceRole(str, enum.Enum):
+class ServiceRole(enum.StrEnum):
     """Role a service plays in the architecture."""
 
     DATABASE = "database"

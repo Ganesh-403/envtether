@@ -107,9 +107,7 @@ class PydanticSettingsVisitor(ast.NodeVisitor):
                     if isinstance(target, ast.Name) and target.id == "model_config":
                         if isinstance(stmt.value, ast.Call):
                             for kw in stmt.value.keywords:
-                                if kw.arg == "env_prefix" and isinstance(
-                                    kw.value, ast.Constant
-                                ):
+                                if kw.arg == "env_prefix" and isinstance(kw.value, ast.Constant):
                                     return str(kw.value.value)
 
             # class Config: env_prefix = "APP_"
@@ -261,9 +259,7 @@ class PydanticSettingsVisitor(ast.NodeVisitor):
                 default_value = str(kw.value.value)
             elif kw.arg == "description" and isinstance(kw.value, ast.Constant):
                 description = str(kw.value.value)
-            elif kw.arg in {"alias", "validation_alias"} and isinstance(
-                kw.value, ast.Constant
-            ):
+            elif kw.arg in {"alias", "validation_alias"} and isinstance(kw.value, ast.Constant):
                 alias = str(kw.value.value)
 
         return default_value, is_secret, description, alias

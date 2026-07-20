@@ -6,12 +6,14 @@ All envtether plugins must implement the :class:`PluginProtocol` interface.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from envtether.models.config import ConfigVariable
-from envtether.models.findings import Finding
-from envtether.scanner.scanner import ScannedFile
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from envtether.models.config import ConfigVariable
+    from envtether.models.findings import Finding
+    from envtether.scanner.scanner import ScannedFile
 
 
 @dataclass(frozen=True)

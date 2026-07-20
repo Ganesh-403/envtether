@@ -7,7 +7,7 @@ and ``services.*.env_file`` directives.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
 
@@ -17,6 +17,9 @@ from envtether.models.config import (
     ConfigVariable,
     VariableLocation,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +140,11 @@ class DockerComposeAnalyzer:
         """
         for i, line in enumerate(lines):
             stripped = line.strip()
-            if stripped.startswith(f"{key}:") or stripped.startswith(f"- {key}=") or stripped.startswith(f"- {key}"):
+            if (
+                stripped.startswith(f"{key}:")
+                or stripped.startswith(f"- {key}=")
+                or stripped.startswith(f"- {key}")
+            ):
                 return i + 1
             if f"{key}=" in stripped or f'"{key}"' in stripped:
                 return i + 1

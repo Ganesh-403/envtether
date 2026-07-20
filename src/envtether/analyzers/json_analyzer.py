@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from envtether.models.config import (
     ConfigSource,
@@ -12,6 +12,9 @@ from envtether.models.config import (
     ConfigVariable,
     VariableLocation,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -71,29 +74,30 @@ class JSONAnalyzer:
                 self._walk(value, relative_path, source_lines, variables, prefix=full_key)
             elif isinstance(value, list):
                 continue
-            else:
-                if self._is_env_like(key) or prefix.lower() in {
-                    "env", "environment", "config",
-                }:
-                    line_no = self._find_key_line(source_lines, key)
-                    location = VariableLocation(
-                        file_path=relative_path,
-                        line=line_no,
-                        column=0,
-                        snippet=source_lines[line_no - 1] if line_no <= len(source_lines) else "",
-                    )
-                    source = ConfigSource(
-                        source_type=ConfigSourceType.JSON_FILE,
-                        location=location,
-                        raw_value=str(value) if value is not None else None,
-                        metadata={"json_path": full_key},
-                    )
-                    var = ConfigVariable(
-                        name=key if self._is_env_like(key) else full_key,
-                        sources=(source,),
-                        tags=frozenset({"json"}),
-                    )
-                    variables.append(var)
+            elif self._is_env_like(key) or prefix.lower() in {
+                "env",
+                "environment",
+                "config",
+            }:
+                line_no = self._find_key_line(source_lines, key)
+                location = VariableLocation(
+                    file_path=relative_path,
+                    line=line_no,
+                    column=0,
+                    snippet=source_lines[line_no - 1] if line_no <= len(source_lines) else "",
+                )
+                source = ConfigSource(
+                    source_type=ConfigSourceType.JSON_FILE,
+                    location=location,
+                    raw_value=str(value) if value is not None else None,
+                    metadata={"json_path": full_key},
+                )
+                var = ConfigVariable(
+                    name=key if self._is_env_like(key) else full_key,
+                    sources=(source,),
+                    tags=frozenset({"json"}),
+                )
+                variables.append(var)
 
     @staticmethod
     def _is_env_like(key: str) -> bool:

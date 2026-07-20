@@ -7,15 +7,14 @@ behaviour, ignore patterns, plugin loading, and output preferences.
 from __future__ import annotations
 
 import sys
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib  # type: ignore[import-untyped]
+if TYPE_CHECKING:
+    from pathlib import Path
 
+import tomllib  # type: ignore[import-untyped]
 
 _DEFAULT_IGNORE_DIRS: frozenset[str] = frozenset(
     {
@@ -201,7 +200,7 @@ class EnvtetherConfig(BaseModel, frozen=True):
             f"entropy_threshold = {self.security.entropy_threshold}",
             f"min_secret_length = {self.security.min_secret_length}",
             f"redact_secrets = {str(self.security.redact_secrets).lower()}",
-            'ignored_variables = []',
+            "ignored_variables = []",
             "",
             "[reporting]",
             f'default_format = "{self.reporting.default_format}"',

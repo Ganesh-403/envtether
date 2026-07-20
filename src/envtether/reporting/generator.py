@@ -10,11 +10,13 @@ import csv
 import io
 import json
 import logging
-from datetime import datetime, timezone
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from envtether.models.findings import Severity
 from envtether.models.report import FullReport, ReportFormat
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -64,43 +66,51 @@ class ReportGenerator:
         ]
 
         # Metadata
-        lines.extend([
-            f"**Generated**: {report.metadata.generated_at.strftime('%Y-%m-%d %H:%M UTC')}",
-            f"**Scan root**: `{report.metadata.scan_root}`",
-            f"**Duration**: {report.metadata.scan_duration_ms:.0f}ms",
-            f"**Files scanned**: {report.metadata.total_files}",
-            f"**Variables found**: {report.metadata.total_variables}",
-            f"**Findings**: {report.metadata.total_findings}",
-            "",
-        ])
+        lines.extend(
+            [
+                f"**Generated**: {report.metadata.generated_at.strftime('%Y-%m-%d %H:%M UTC')}",
+                f"**Scan root**: `{report.metadata.scan_root}`",
+                f"**Duration**: {report.metadata.scan_duration_ms:.0f}ms",
+                f"**Files scanned**: {report.metadata.total_files}",
+                f"**Variables found**: {report.metadata.total_variables}",
+                f"**Findings**: {report.metadata.total_findings}",
+                "",
+            ]
+        )
 
         # Health Score
         if report.health:
             score = report.health.score
-            lines.extend([
-                "## Health Score",
-                "",
-                f"### {score.overall:.0f} / 100 — Grade {score.grade}",
-                "",
-                report.health.summary,
-                "",
-            ])
+            lines.extend(
+                [
+                    "## Health Score",
+                    "",
+                    f"### {score.overall:.0f} / 100 — Grade {score.grade}",
+                    "",
+                    report.health.summary,
+                    "",
+                ]
+            )
 
             if not report.health.is_production_ready:
-                lines.extend([
-                    "### ⚠️ Production Blockers",
-                    "",
-                ])
+                lines.extend(
+                    [
+                        "### ⚠️ Production Blockers",
+                        "",
+                    ]
+                )
                 for blocker in report.health.production_blockers:
                     lines.append(f"- {blocker}")
                 lines.append("")
 
-            lines.extend([
-                "### Dimension Scores",
-                "",
-                "| Dimension | Score | Issues | Details |",
-                "|-----------|-------|--------|---------|",
-            ])
+            lines.extend(
+                [
+                    "### Dimension Scores",
+                    "",
+                    "| Dimension | Score | Issues | Details |",
+                    "|-----------|-------|--------|---------|",
+                ]
+            )
             for dim in score.dimensions:
                 lines.append(
                     f"| {dim.dimension.value.replace('_', ' ').title()} "
@@ -110,27 +120,43 @@ class ReportGenerator:
 
         # Findings
         if report.findings:
-            lines.extend([
-                "## Findings",
-                "",
-            ])
-            for severity in [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW, Severity.INFO]:
+            lines.extend(
+                [
+                    "## Findings",
+                    "",
+                ]
+            )
+            for severity in [
+                Severity.CRITICAL,
+                Severity.HIGH,
+                Severity.MEDIUM,
+                Severity.LOW,
+                Severity.INFO,
+            ]:
                 findings = [f for f in report.findings if f.severity == severity]
                 if findings:
-                    emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🔵", "info": "ℹ️"}.get(
-                        severity.value, ""
+                    emoji = {
+                        "critical": "🔴",
+                        "high": "🟠",
+                        "medium": "🟡",
+                        "low": "🔵",
+                        "info": "ℹ️",
+                    }.get(severity.value, "")
+                    lines.extend(
+                        [
+                            f"### {emoji} {severity.value.title()} ({len(findings)})",
+                            "",
+                        ]
                     )
-                    lines.extend([
-                        f"### {emoji} {severity.value.title()} ({len(findings)})",
-                        "",
-                    ])
                     for finding in findings:
-                        lines.extend([
-                            f"#### {finding.finding_id}: {finding.title}",
-                            "",
-                            finding.description,
-                            "",
-                        ])
+                        lines.extend(
+                            [
+                                f"#### {finding.finding_id}: {finding.title}",
+                                "",
+                                finding.description,
+                                "",
+                            ]
+                        )
                         if finding.recommendations:
                             lines.append("**Recommendations:**")
                             for rec in finding.recommendations:
@@ -139,12 +165,14 @@ class ReportGenerator:
 
         # Variables summary
         if report.variables:
-            lines.extend([
-                "## Variables",
-                "",
-                "| Name | Sources | Status | Secret |",
-                "|------|---------|--------|--------|",
-            ])
+            lines.extend(
+                [
+                    "## Variables",
+                    "",
+                    "| Name | Sources | Status | Secret |",
+                    "|------|---------|--------|--------|",
+                ]
+            )
             for var in sorted(report.variables, key=lambda v: v.name):
                 source_types = ", ".join(sorted({s.source_type.value for s in var.sources}))
                 statuses = ", ".join(sorted(s.value for s in var.statuses)) or "active"
@@ -154,13 +182,15 @@ class ReportGenerator:
 
         # Cross-file comparison
         if report.cross_file and report.cross_file.has_drift:
-            lines.extend([
-                "## Cross-file Drift",
-                "",
-                f"**Consistent variables**: {len(report.cross_file.consistent_variables)}",
-                f"**Drift issues**: {report.cross_file.drift_count}",
-                "",
-            ])
+            lines.extend(
+                [
+                    "## Cross-file Drift",
+                    "",
+                    f"**Consistent variables**: {len(report.cross_file.consistent_variables)}",
+                    f"**Drift issues**: {report.cross_file.drift_count}",
+                    "",
+                ]
+            )
 
         lines.append("---")
         lines.append("*Generated by [envtether](https://github.com/envtether/envtether)*")
@@ -181,15 +211,16 @@ class ReportGenerator:
         findings_html = []
         for finding in report.findings:
             severity_colour = {
-                "critical": "#ef4444", "high": "#f97316",
-                "medium": "#eab308", "low": "#3b82f6", "info": "#6b7280",
+                "critical": "#ef4444",
+                "high": "#f97316",
+                "medium": "#eab308",
+                "low": "#3b82f6",
+                "info": "#6b7280",
             }.get(finding.severity.value, "#6b7280")
 
             recs_html = ""
             if finding.recommendations:
-                recs_items = "".join(
-                    f"<li>{r.message}</li>" for r in finding.recommendations
-                )
+                recs_items = "".join(f"<li>{r.message}</li>" for r in finding.recommendations)
                 recs_html = f"<ul class='recs'>{recs_items}</ul>"
 
             findings_html.append(f"""
@@ -218,7 +249,9 @@ class ReportGenerator:
         if report.health:
             dim_bars = []
             for dim in report.health.score.dimensions:
-                colour = "#22c55e" if dim.score >= 80 else "#eab308" if dim.score >= 50 else "#ef4444"
+                colour = (
+                    "#22c55e" if dim.score >= 80 else "#eab308" if dim.score >= 50 else "#ef4444"
+                )
                 dim_name = dim.dimension.value.replace("_", " ").title()
                 dim_bars.append(f"""
                 <div class="dim-row">
@@ -244,7 +277,7 @@ header{{text-align:center;padding:3rem 0;border-bottom:1px solid #1e293b}}
 h1{{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#818cf8,#c084fc,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem}}
 .tagline{{color:#94a3b8;font-size:1rem}}
 .score-section{{display:flex;align-items:center;gap:3rem;padding:2rem 0;justify-content:center;flex-wrap:wrap}}
-.score-ring{{width:160px;height:160px;border-radius:50%;background:conic-gradient(#818cf8 0deg,#818cf8 {score_val*3.6}deg,#1e293b {score_val*3.6}deg);display:flex;align-items:center;justify-content:center;position:relative}}
+.score-ring{{width:160px;height:160px;border-radius:50%;background:conic-gradient(#818cf8 0deg,#818cf8 {score_val * 3.6}deg,#1e293b {score_val * 3.6}deg);display:flex;align-items:center;justify-content:center;position:relative}}
 .score-inner{{width:120px;height:120px;border-radius:50%;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center}}
 .score-num{{font-size:2.5rem;font-weight:800;color:#818cf8}}
 .score-grade{{font-size:1rem;color:#94a3b8}}
@@ -301,7 +334,7 @@ footer{{text-align:center;padding:2rem;color:#475569;font-size:.75rem;border-top
 <h2>Variables ({len(report.variables)})</h2>
 <table><thead><tr><th>Name</th><th>Sources</th><th>Status</th><th></th></tr></thead><tbody>{"".join(vars_rows)}</tbody></table>
 </div>
-<footer>Generated by envtether &bull; {report.metadata.generated_at.strftime('%Y-%m-%d %H:%M UTC')}</footer>
+<footer>Generated by envtether &bull; {report.metadata.generated_at.strftime("%Y-%m-%d %H:%M UTC")}</footer>
 </body>
 </html>"""
 
@@ -313,20 +346,29 @@ footer{{text-align:center;padding:2rem;color:#475569;font-size:.75rem;border-top
         """Generate a CSV report of variables."""
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow([
-            "Variable", "Sources", "Statuses", "Is Secret",
-            "Definition Count", "Usage Count", "Description",
-        ])
+        writer.writerow(
+            [
+                "Variable",
+                "Sources",
+                "Statuses",
+                "Is Secret",
+                "Definition Count",
+                "Usage Count",
+                "Description",
+            ]
+        )
         for var in sorted(report.variables, key=lambda v: v.name):
-            writer.writerow([
-                var.name,
-                "; ".join(sorted({s.source_type.value for s in var.sources})),
-                "; ".join(sorted(s.value for s in var.statuses)),
-                str(var.is_secret),
-                var.definition_count,
-                len(var.usages),
-                var.description,
-            ])
+            writer.writerow(
+                [
+                    var.name,
+                    "; ".join(sorted({s.source_type.value for s in var.sources})),
+                    "; ".join(sorted(s.value for s in var.statuses)),
+                    str(var.is_secret),
+                    var.definition_count,
+                    len(var.usages),
+                    var.description,
+                ]
+            )
         return output.getvalue()
 
     def _to_sarif(self, report: FullReport) -> str:
@@ -339,34 +381,42 @@ footer{{text-align:center;padding:2rem;color:#475569;font-size:.75rem;border-top
             # Register rule if not already seen
             if finding.category.value not in rule_ids_seen:
                 rule_ids_seen.add(finding.category.value)
-                rules.append({
-                    "id": finding.category.value,
-                    "name": finding.category.value.replace("_", " ").title(),
-                    "shortDescription": {"text": finding.category.value.replace("_", " ").title()},
-                    "defaultConfiguration": {
-                        "level": self._sarif_level(finding.severity),
-                    },
-                })
+                rules.append(
+                    {
+                        "id": finding.category.value,
+                        "name": finding.category.value.replace("_", " ").title(),
+                        "shortDescription": {
+                            "text": finding.category.value.replace("_", " ").title()
+                        },
+                        "defaultConfiguration": {
+                            "level": self._sarif_level(finding.severity),
+                        },
+                    }
+                )
 
             locations: list[dict[str, object]] = []
             for loc in finding.locations:
-                locations.append({
-                    "physicalLocation": {
-                        "artifactLocation": {"uri": loc.file_path},
-                        "region": {"startLine": loc.line, "startColumn": loc.column + 1},
-                    },
-                })
+                locations.append(
+                    {
+                        "physicalLocation": {
+                            "artifactLocation": {"uri": loc.file_path},
+                            "region": {"startLine": loc.line, "startColumn": loc.column + 1},
+                        },
+                    }
+                )
 
-            results.append({
-                "ruleId": finding.category.value,
-                "ruleIndex": next(
-                    i for i, r in enumerate(rules) if r["id"] == finding.category.value
-                ),
-                "level": self._sarif_level(finding.severity),
-                "message": {"text": finding.description},
-                "locations": locations,
-                "fingerprints": {"envtether/id": finding.finding_id},
-            })
+            results.append(
+                {
+                    "ruleId": finding.category.value,
+                    "ruleIndex": next(
+                        i for i, r in enumerate(rules) if r["id"] == finding.category.value
+                    ),
+                    "level": self._sarif_level(finding.severity),
+                    "message": {"text": finding.description},
+                    "locations": locations,
+                    "fingerprints": {"envtether/id": finding.finding_id},
+                }
+            )
 
         sarif = {
             "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",

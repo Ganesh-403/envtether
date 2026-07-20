@@ -8,10 +8,13 @@ standalone reference documents.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from envtether.models.config import ConfigVariable
-from envtether.models.report import FullReport
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from envtether.models.config import ConfigVariable
+    from envtether.models.report import FullReport
 
 logger = logging.getLogger(__name__)
 
@@ -37,14 +40,16 @@ class DocumentationGenerator:
 
         # Project info
         if report.project:
-            lines.extend([
-                "## Project Overview",
-                "",
-                f"- **Project**: {report.project.name}",
-                f"- **Files scanned**: {report.project.total_files_scanned}",
-                f"- **Configuration files**: {report.project.total_config_files}",
-                f"- **Python files**: {report.project.total_python_files}",
-            ])
+            lines.extend(
+                [
+                    "## Project Overview",
+                    "",
+                    f"- **Project**: {report.project.name}",
+                    f"- **Files scanned**: {report.project.total_files_scanned}",
+                    f"- **Configuration files**: {report.project.total_config_files}",
+                    f"- **Python files**: {report.project.total_python_files}",
+                ]
+            )
             if report.project.architecture.project_types:
                 types = ", ".join(
                     sorted(pt.value for pt in report.project.architecture.project_types)
@@ -78,7 +83,9 @@ class DocumentationGenerator:
                     continue
                 seen.add(var.name)
 
-                required = "**Required**" if any(s.is_required for s in var.sources) else "Optional"
+                required = (
+                    "**Required**" if any(s.is_required for s in var.sources) else "Optional"
+                )
                 secret = " 🔒 Secret" if var.is_secret else ""
 
                 lines.append(f"#### `{var.name}`")
@@ -114,15 +121,15 @@ class DocumentationGenerator:
         # Architecture
         if report.project and report.project.architecture.services:
             lines.extend(["## Service Dependencies", ""])
-            lines.extend([
-                "| Service | Role | Provider | Config Variables |",
-                "|---------|------|----------|-----------------|",
-            ])
+            lines.extend(
+                [
+                    "| Service | Role | Provider | Config Variables |",
+                    "|---------|------|----------|-----------------|",
+                ]
+            )
             for svc in report.project.architecture.services:
                 config_vars = ", ".join(f"`{v}`" for v in sorted(svc.config_variables)) or "—"
-                lines.append(
-                    f"| {svc.name} | {svc.role.value} | {svc.provider} | {config_vars} |"
-                )
+                lines.append(f"| {svc.name} | {svc.role.value} | {svc.provider} | {config_vars} |")
             lines.append("")
 
         lines.append("---")
@@ -191,10 +198,7 @@ em{{color:#64748b;font-style:normal}}
         Returns:
             The path the file was written to.
         """
-        if fmt == "html":
-            content = self.generate_html(report)
-        else:
-            content = self.generate_markdown(report)
+        content = self.generate_html(report) if fmt == "html" else self.generate_markdown(report)
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(content, encoding="utf-8")
@@ -281,9 +285,7 @@ em{{color:#64748b;font-style:normal}}
                     in_list = False
                 line_html = re.sub(r"`([^`]+)`", r"<code>\1</code>", stripped)
                 line_html = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", line_html)
-                line_html = re.sub(
-                    r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', line_html
-                )
+                line_html = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', line_html)
                 html_lines.append(f"<p>{line_html}</p>")
 
         if in_table:

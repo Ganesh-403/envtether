@@ -44,9 +44,7 @@ class SecretDetector:
         self._config = config or SecurityConfig()
         self._registry = registry or SecretPatternRegistry()
 
-    def scan_variables(
-        self, variables: list[ConfigVariable]
-    ) -> list[Finding]:
+    def scan_variables(self, variables: list[ConfigVariable]) -> list[Finding]:
         """Scan a list of configuration variables for exposed secrets.
 
         Args:
@@ -84,7 +82,9 @@ class SecretDetector:
                 if all_patterns or (high_entropy and self._looks_like_secret_name(var.name)):
                     redacted = redact_value(value) if self._config.redact_secrets else value
 
-                    pattern_names = ", ".join(p.name for p in all_patterns) if all_patterns else "high entropy"
+                    pattern_names = (
+                        ", ".join(p.name for p in all_patterns) if all_patterns else "high entropy"
+                    )
 
                     finding = Finding(
                         finding_id=deterministic_id(
@@ -107,8 +107,7 @@ class SecretDetector:
                         locations=(source.location,),
                         recommendations=self._build_recommendations(var.name, all_patterns),
                         tags=frozenset(
-                            {"security", "secret"}
-                            | {tag for p in all_patterns for tag in p.tags}
+                            {"security", "secret"} | {tag for p in all_patterns for tag in p.tags}
                         ),
                     )
                     findings.append(finding)
@@ -145,9 +144,7 @@ class SecretDetector:
                 if match:
                     secret_group = match.groupdict().get("secret", match.group(0))
                     redacted = (
-                        redact_value(secret_group)
-                        if self._config.redact_secrets
-                        else secret_group
+                        redact_value(secret_group) if self._config.redact_secrets else secret_group
                     )
 
                     location = VariableLocation(
@@ -174,7 +171,8 @@ class SecretDetector:
                         locations=(location,),
                         recommendations=(
                             Recommendation(
-                                message=pattern.remediation or (
+                                message=pattern.remediation
+                                or (
                                     f"Remove the {pattern.name} from source code and "
                                     f"store it in an environment variable or secrets manager."
                                 ),
@@ -204,10 +202,25 @@ class SecretDetector:
         """Heuristic: does the variable name suggest a secret?"""
         lower = name.lower()
         secret_words = {
-            "secret", "password", "passwd", "token", "api_key", "apikey",
-            "access_key", "private_key", "signing_key", "encryption_key",
-            "auth_token", "client_secret", "jwt_secret", "db_password",
-            "smtp_password", "openai", "anthropic", "stripe", "twilio",
+            "secret",
+            "password",
+            "passwd",
+            "token",
+            "api_key",
+            "apikey",
+            "access_key",
+            "private_key",
+            "signing_key",
+            "encryption_key",
+            "auth_token",
+            "client_secret",
+            "jwt_secret",
+            "db_password",
+            "smtp_password",
+            "openai",
+            "anthropic",
+            "stripe",
+            "twilio",
         }
         return any(word in lower for word in secret_words)
 

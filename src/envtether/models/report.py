@@ -3,17 +3,19 @@
 from __future__ import annotations
 
 import enum
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
-from .config import ConfigVariable
-from .findings import Finding
-from .health import HealthReport
-from .project import ProjectInfo
+if TYPE_CHECKING:
+    from .config import ConfigVariable
+    from .findings import Finding
+    from .health import HealthReport
+    from .project import ProjectInfo
 
 
-class ReportFormat(str, enum.Enum):
+class ReportFormat(enum.StrEnum):
     """Supported report output formats."""
 
     MARKDOWN = "markdown"
@@ -63,7 +65,7 @@ class ReportMetadata(BaseModel, frozen=True):
     """Metadata attached to every generated report."""
 
     envtether_version: str = Field(default="0.1.0")
-    generated_at: datetime = Field(default_factory=lambda: datetime.now(tz=timezone.utc))
+    generated_at: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))
     scan_root: str = Field(default=".")
     scan_duration_ms: float = Field(ge=0.0, default=0.0)
     total_files: int = Field(ge=0, default=0)

@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from envtether.analyzers.docker_analyzer import DockerComposeAnalyzer
 from envtether.analyzers.env_file_analyzer import EnvFileAnalyzer
@@ -26,12 +27,14 @@ from envtether.core.crossfile import CrossFileValidator
 from envtether.core.health import HealthScoreEngine
 from envtether.graph.builder import GraphBuilder
 from envtether.models.config import ConfigVariable, VariableStatus
-from envtether.models.findings import Finding
-from envtether.models.project import ArchitectureInfo, ProjectInfo
+from envtether.models.project import ProjectInfo
 from envtether.models.report import FullReport, ReportMetadata
 from envtether.scanner.file_classifier import FileType
-from envtether.scanner.scanner import RepositoryScanner, ScanResult, ScannedFile
+from envtether.scanner.scanner import RepositoryScanner, ScannedFile
 from envtether.security.detector import SecretDetector
+
+if TYPE_CHECKING:
+    from envtether.models.findings import Finding
 
 logger = logging.getLogger(__name__)
 
@@ -238,7 +241,5 @@ class AnalysisEngine:
             if var.is_duplicate:
                 statuses.add(VariableStatus.DUPLICATE)
 
-            result.append(
-                var.model_copy(update={"statuses": frozenset(statuses)})
-            )
+            result.append(var.model_copy(update={"statuses": frozenset(statuses)}))
         return result

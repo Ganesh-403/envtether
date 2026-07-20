@@ -7,13 +7,15 @@ produces a composite score from 0 to 100.
 from __future__ import annotations
 
 import enum
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
-from .findings import Recommendation
+if TYPE_CHECKING:
+    from .findings import Recommendation
 
 
-class ScoreDimension(str, enum.Enum):
+class ScoreDimension(enum.StrEnum):
     """Individual dimensions that contribute to the health score."""
 
     MISSING_VARIABLES = "missing_variables"

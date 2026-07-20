@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from envtether.models.project import (
     ArchitectureInfo,
@@ -19,7 +20,9 @@ from envtether.models.project import (
     ServiceRole,
 )
 from envtether.scanner.file_classifier import FileType
-from envtether.scanner.scanner import ScanResult
+
+if TYPE_CHECKING:
+    from envtether.scanner.scanner import ScanResult
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +45,10 @@ _PYTHON_IMPORT_PATTERNS: list[tuple[re.Pattern[str], ProjectType]] = [
     (re.compile(r"(?:from\s+starlette|import\s+starlette)"), ProjectType.STARLETTE),
     (re.compile(r"(?:from\s+typer|import\s+typer)"), ProjectType.TYPER),
     (re.compile(r"(?:from\s+click|import\s+click)"), ProjectType.CLICK),
-    (re.compile(r"(?:from\s+pydantic_settings|import\s+pydantic_settings)"), ProjectType.PYDANTIC_SETTINGS),
+    (
+        re.compile(r"(?:from\s+pydantic_settings|import\s+pydantic_settings)"),
+        ProjectType.PYDANTIC_SETTINGS,
+    ),
     (re.compile(r"(?:from\s+dotenv|import\s+dotenv)"), ProjectType.PYTHON_DOTENV),
     (re.compile(r"(?:from\s+dynaconf|import\s+dynaconf)"), ProjectType.DYNACONF),
     (re.compile(r"(?:from\s+hydra|import\s+hydra)"), ProjectType.HYDRA),
@@ -51,66 +57,195 @@ _PYTHON_IMPORT_PATTERNS: list[tuple[re.Pattern[str], ProjectType]] = [
 # Import patterns for service dependency detection
 _SERVICE_PATTERNS: list[tuple[re.Pattern[str], str, ServiceRole, str]] = [
     # ORMs
-    (re.compile(r"(?:from\s+sqlalchemy|import\s+sqlalchemy)"), "SQLAlchemy", ServiceRole.ORM, "sqlalchemy"),
-    (re.compile(r"(?:from\s+tortoise|import\s+tortoise)"), "Tortoise ORM", ServiceRole.ORM, "tortoise-orm"),
+    (
+        re.compile(r"(?:from\s+sqlalchemy|import\s+sqlalchemy)"),
+        "SQLAlchemy",
+        ServiceRole.ORM,
+        "sqlalchemy",
+    ),
+    (
+        re.compile(r"(?:from\s+tortoise|import\s+tortoise)"),
+        "Tortoise ORM",
+        ServiceRole.ORM,
+        "tortoise-orm",
+    ),
     (re.compile(r"(?:from\s+peewee|import\s+peewee)"), "Peewee", ServiceRole.ORM, "peewee"),
     (re.compile(r"(?:from\s+prisma|import\s+prisma)"), "Prisma", ServiceRole.ORM, "prisma"),
-    (re.compile(r"(?:from\s+django\.db|import\s+django\.db)"), "Django ORM", ServiceRole.ORM, "django"),
-
+    (
+        re.compile(r"(?:from\s+django\.db|import\s+django\.db)"),
+        "Django ORM",
+        ServiceRole.ORM,
+        "django",
+    ),
     # Databases
-    (re.compile(r"(?:import\s+psycopg|from\s+psycopg)"), "PostgreSQL", ServiceRole.DATABASE, "psycopg"),
-    (re.compile(r"(?:import\s+asyncpg|from\s+asyncpg)"), "PostgreSQL", ServiceRole.DATABASE, "asyncpg"),
+    (
+        re.compile(r"(?:import\s+psycopg|from\s+psycopg)"),
+        "PostgreSQL",
+        ServiceRole.DATABASE,
+        "psycopg",
+    ),
+    (
+        re.compile(r"(?:import\s+asyncpg|from\s+asyncpg)"),
+        "PostgreSQL",
+        ServiceRole.DATABASE,
+        "asyncpg",
+    ),
     (re.compile(r"(?:import\s+pymysql|from\s+pymysql)"), "MySQL", ServiceRole.DATABASE, "pymysql"),
-    (re.compile(r"(?:import\s+pymongo|from\s+pymongo)"), "MongoDB", ServiceRole.DATABASE, "pymongo"),
+    (
+        re.compile(r"(?:import\s+pymongo|from\s+pymongo)"),
+        "MongoDB",
+        ServiceRole.DATABASE,
+        "pymongo",
+    ),
     (re.compile(r"(?:import\s+motor|from\s+motor)"), "MongoDB", ServiceRole.DATABASE, "motor"),
-
     # Cache
     (re.compile(r"(?:import\s+redis|from\s+redis)"), "Redis", ServiceRole.CACHE, "redis"),
-    (re.compile(r"(?:import\s+memcache|from\s+pymemcache)"), "Memcached", ServiceRole.CACHE, "pymemcache"),
-
+    (
+        re.compile(r"(?:import\s+memcache|from\s+pymemcache)"),
+        "Memcached",
+        ServiceRole.CACHE,
+        "pymemcache",
+    ),
     # Queue / Message Broker
     (re.compile(r"(?:import\s+celery|from\s+celery)"), "Celery", ServiceRole.QUEUE, "celery"),
     (re.compile(r"(?:import\s+rq|from\s+rq)"), "RQ", ServiceRole.QUEUE, "rq"),
     (re.compile(r"(?:import\s+pika|from\s+pika)"), "RabbitMQ", ServiceRole.MESSAGE_BROKER, "pika"),
-    (re.compile(r"(?:import\s+kafka|from\s+kafka)"), "Kafka", ServiceRole.MESSAGE_BROKER, "kafka-python"),
+    (
+        re.compile(r"(?:import\s+kafka|from\s+kafka)"),
+        "Kafka",
+        ServiceRole.MESSAGE_BROKER,
+        "kafka-python",
+    ),
     (re.compile(r"(?:import\s+nats|from\s+nats)"), "NATS", ServiceRole.MESSAGE_BROKER, "nats-py"),
-
     # Object Storage
-    (re.compile(r"(?:import\s+boto3|from\s+boto3)"), "AWS S3", ServiceRole.OBJECT_STORAGE, "boto3"),
-    (re.compile(r"(?:from\s+google\.cloud\s+import\s+storage)"), "GCS", ServiceRole.OBJECT_STORAGE, "google-cloud-storage"),
+    (
+        re.compile(r"(?:import\s+boto3|from\s+boto3)"),
+        "AWS S3",
+        ServiceRole.OBJECT_STORAGE,
+        "boto3",
+    ),
+    (
+        re.compile(r"(?:from\s+google\.cloud\s+import\s+storage)"),
+        "GCS",
+        ServiceRole.OBJECT_STORAGE,
+        "google-cloud-storage",
+    ),
     (re.compile(r"(?:import\s+minio|from\s+minio)"), "MinIO", ServiceRole.OBJECT_STORAGE, "minio"),
-
     # Search
-    (re.compile(r"(?:import\s+elasticsearch|from\s+elasticsearch)"), "Elasticsearch", ServiceRole.SEARCH_ENGINE, "elasticsearch"),
-    (re.compile(r"(?:import\s+meilisearch|from\s+meilisearch)"), "Meilisearch", ServiceRole.SEARCH_ENGINE, "meilisearch"),
-
+    (
+        re.compile(r"(?:import\s+elasticsearch|from\s+elasticsearch)"),
+        "Elasticsearch",
+        ServiceRole.SEARCH_ENGINE,
+        "elasticsearch",
+    ),
+    (
+        re.compile(r"(?:import\s+meilisearch|from\s+meilisearch)"),
+        "Meilisearch",
+        ServiceRole.SEARCH_ENGINE,
+        "meilisearch",
+    ),
     # LLM Providers
-    (re.compile(r"(?:import\s+openai|from\s+openai)"), "OpenAI", ServiceRole.LLM_PROVIDER, "openai"),
-    (re.compile(r"(?:import\s+anthropic|from\s+anthropic)"), "Anthropic", ServiceRole.LLM_PROVIDER, "anthropic"),
-    (re.compile(r"(?:import\s+google\.generativeai|from\s+google\.generativeai)"), "Google Gemini", ServiceRole.LLM_PROVIDER, "google-generativeai"),
-    (re.compile(r"(?:import\s+cohere|from\s+cohere)"), "Cohere", ServiceRole.LLM_PROVIDER, "cohere"),
-
+    (
+        re.compile(r"(?:import\s+openai|from\s+openai)"),
+        "OpenAI",
+        ServiceRole.LLM_PROVIDER,
+        "openai",
+    ),
+    (
+        re.compile(r"(?:import\s+anthropic|from\s+anthropic)"),
+        "Anthropic",
+        ServiceRole.LLM_PROVIDER,
+        "anthropic",
+    ),
+    (
+        re.compile(r"(?:import\s+google\.generativeai|from\s+google\.generativeai)"),
+        "Google Gemini",
+        ServiceRole.LLM_PROVIDER,
+        "google-generativeai",
+    ),
+    (
+        re.compile(r"(?:import\s+cohere|from\s+cohere)"),
+        "Cohere",
+        ServiceRole.LLM_PROVIDER,
+        "cohere",
+    ),
     # Vector Databases
-    (re.compile(r"(?:import\s+chromadb|from\s+chromadb)"), "ChromaDB", ServiceRole.VECTOR_DATABASE, "chromadb"),
-    (re.compile(r"(?:import\s+pinecone|from\s+pinecone)"), "Pinecone", ServiceRole.VECTOR_DATABASE, "pinecone"),
-    (re.compile(r"(?:import\s+qdrant|from\s+qdrant_client)"), "Qdrant", ServiceRole.VECTOR_DATABASE, "qdrant-client"),
-    (re.compile(r"(?:import\s+weaviate|from\s+weaviate)"), "Weaviate", ServiceRole.VECTOR_DATABASE, "weaviate-client"),
-
+    (
+        re.compile(r"(?:import\s+chromadb|from\s+chromadb)"),
+        "ChromaDB",
+        ServiceRole.VECTOR_DATABASE,
+        "chromadb",
+    ),
+    (
+        re.compile(r"(?:import\s+pinecone|from\s+pinecone)"),
+        "Pinecone",
+        ServiceRole.VECTOR_DATABASE,
+        "pinecone",
+    ),
+    (
+        re.compile(r"(?:import\s+qdrant|from\s+qdrant_client)"),
+        "Qdrant",
+        ServiceRole.VECTOR_DATABASE,
+        "qdrant-client",
+    ),
+    (
+        re.compile(r"(?:import\s+weaviate|from\s+weaviate)"),
+        "Weaviate",
+        ServiceRole.VECTOR_DATABASE,
+        "weaviate-client",
+    ),
     # Authentication
-    (re.compile(r"(?:import\s+authlib|from\s+authlib)"), "AuthLib", ServiceRole.AUTHENTICATION, "authlib"),
-    (re.compile(r"(?:import\s+passlib|from\s+passlib)"), "Passlib", ServiceRole.AUTHENTICATION, "passlib"),
-    (re.compile(r"(?:import\s+python_jose|from\s+jose)"), "python-jose", ServiceRole.AUTHENTICATION, "python-jose"),
-
+    (
+        re.compile(r"(?:import\s+authlib|from\s+authlib)"),
+        "AuthLib",
+        ServiceRole.AUTHENTICATION,
+        "authlib",
+    ),
+    (
+        re.compile(r"(?:import\s+passlib|from\s+passlib)"),
+        "Passlib",
+        ServiceRole.AUTHENTICATION,
+        "passlib",
+    ),
+    (
+        re.compile(r"(?:import\s+python_jose|from\s+jose)"),
+        "python-jose",
+        ServiceRole.AUTHENTICATION,
+        "python-jose",
+    ),
     # Monitoring
-    (re.compile(r"(?:import\s+sentry_sdk|from\s+sentry_sdk)"), "Sentry", ServiceRole.MONITORING, "sentry-sdk"),
-    (re.compile(r"(?:import\s+prometheus_client|from\s+prometheus_client)"), "Prometheus", ServiceRole.MONITORING, "prometheus-client"),
-    (re.compile(r"(?:import\s+opentelemetry|from\s+opentelemetry)"), "OpenTelemetry", ServiceRole.MONITORING, "opentelemetry"),
-    (re.compile(r"(?:import\s+datadog|from\s+datadog)"), "Datadog", ServiceRole.MONITORING, "datadog"),
-
+    (
+        re.compile(r"(?:import\s+sentry_sdk|from\s+sentry_sdk)"),
+        "Sentry",
+        ServiceRole.MONITORING,
+        "sentry-sdk",
+    ),
+    (
+        re.compile(r"(?:import\s+prometheus_client|from\s+prometheus_client)"),
+        "Prometheus",
+        ServiceRole.MONITORING,
+        "prometheus-client",
+    ),
+    (
+        re.compile(r"(?:import\s+opentelemetry|from\s+opentelemetry)"),
+        "OpenTelemetry",
+        ServiceRole.MONITORING,
+        "opentelemetry",
+    ),
+    (
+        re.compile(r"(?:import\s+datadog|from\s+datadog)"),
+        "Datadog",
+        ServiceRole.MONITORING,
+        "datadog",
+    ),
     # Email
-    (re.compile(r"(?:import\s+sendgrid|from\s+sendgrid)"), "SendGrid", ServiceRole.EMAIL, "sendgrid"),
+    (
+        re.compile(r"(?:import\s+sendgrid|from\s+sendgrid)"),
+        "SendGrid",
+        ServiceRole.EMAIL,
+        "sendgrid",
+    ),
     (re.compile(r"(?:import\s+resend|from\s+resend)"), "Resend", ServiceRole.EMAIL, "resend"),
-
     # Payment
     (re.compile(r"(?:import\s+stripe|from\s+stripe)"), "Stripe", ServiceRole.PAYMENT, "stripe"),
 ]

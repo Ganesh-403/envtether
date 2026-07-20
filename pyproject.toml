@@ -135,11 +135,18 @@ select = [
     "TID",    # flake8-tidy-imports
 ]
 ignore = [
-    "S101",   # assert allowed in tests
-    "S603",   # subprocess calls
-    "S607",   # partial executable path
-    "PLR0913", # too many arguments
-    "PLR2004", # magic values
+    "S101",     # assert allowed in tests
+    "S603",     # subprocess calls
+    "S607",     # partial executable path
+    "PLR0913",  # too many arguments
+    "PLR2004",  # magic values
+    "E501",     # line too long (ruff format handles formatting; long strings/regex are fine)
+    "PLR0911",  # too many return statements (needed for file classification rules)
+    "PLR0912",  # too many branches (needed for classifier logic)
+    "PLR0915",  # too many statements
+    "PLC0415",  # inline imports (used in test cases to avoid scope pollution)
+    "SIM102",   # nested ifs (sometimes preferred for readability)
+    "PERF401",  # list comprehension performance suggestions
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -5,7 +5,13 @@ from __future__ import annotations
 import pytest
 
 from envtether.core.health import HealthScoreEngine
-from envtether.models.config import ConfigSource, ConfigSourceType, ConfigVariable, VariableLocation, VariableStatus
+from envtether.models.config import (
+    ConfigSource,
+    ConfigSourceType,
+    ConfigVariable,
+    VariableLocation,
+    VariableStatus,
+)
 from envtether.models.findings import Finding, FindingCategory, Severity
 from envtether.models.health import ScoreDimension
 
@@ -13,11 +19,13 @@ from envtether.models.health import ScoreDimension
 class TestHealthScoreEngine:
     """Tests for HealthScoreEngine."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def engine(self) -> HealthScoreEngine:
         return HealthScoreEngine()
 
-    def _create_variable(self, name: str, statuses: set[VariableStatus] | None = None) -> ConfigVariable:
+    def _create_variable(
+        self, name: str, statuses: set[VariableStatus] | None = None
+    ) -> ConfigVariable:
         location = VariableLocation(
             file_path=".env",
             line=1,
@@ -58,10 +66,12 @@ class TestHealthScoreEngine:
 
         # 1 missing out of 2 = 50% missing
         # missing score = max(0, 100 - (0.5 * 500)) = 0
-        missing_dim = next(d for d in report.score.dimensions if d.dimension == ScoreDimension.MISSING_VARIABLES)
+        missing_dim = next(
+            d for d in report.score.dimensions if d.dimension == ScoreDimension.MISSING_VARIABLES
+        )
         assert missing_dim.score == 0
         assert missing_dim.issue_count == 1
-        
+
         # Overall should be less than 100
         assert report.score.overall < 100
         assert report.is_production_ready is False
@@ -84,20 +94,24 @@ class TestHealthScoreEngine:
 
         report = engine.compute(variables, findings)
 
-        hardcoded_dim = next(d for d in report.score.dimensions if d.dimension == ScoreDimension.HARDCODED_SECRETS)
+        hardcoded_dim = next(
+            d for d in report.score.dimensions if d.dimension == ScoreDimension.HARDCODED_SECRETS
+        )
         assert hardcoded_dim.score == 75.0  # 100 - 1 * 25
         assert hardcoded_dim.issue_count == 1
-        
+
         assert report.is_production_ready is False
-        
+
     def test_compute_with_bad_naming(self, engine: HealthScoreEngine) -> None:
         variables = [
             self._create_variable("api_key"),  # Not uppercase
             self._create_variable("GOOD_KEY"),
         ]
-        
+
         report = engine.compute(variables, [])
-        
-        naming_dim = next(d for d in report.score.dimensions if d.dimension == ScoreDimension.NAMING_CONSISTENCY)
+
+        naming_dim = next(
+            d for d in report.score.dimensions if d.dimension == ScoreDimension.NAMING_CONSISTENCY
+        )
         assert naming_dim.score == 90.0  # 100 - 1 * 10
         assert naming_dim.issue_count == 1

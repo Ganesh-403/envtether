@@ -24,7 +24,7 @@ __all__ = [
     "INIAnalyzer",
     "JSONAnalyzer",
     "KubernetesAnalyzer",
-    "TerraformAnalyzer",
     "TOMLAnalyzer",
+    "TerraformAnalyzer",
     "YAMLAnalyzer",
 ]

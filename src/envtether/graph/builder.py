@@ -8,11 +8,13 @@ and deployment targets.
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import networkx as nx  # type: ignore[import-untyped]
 
-from envtether.models.config import ConfigVariable
-from envtether.models.project import ArchitectureInfo, ServiceDependency
+if TYPE_CHECKING:
+    from envtether.models.config import ConfigVariable
+    from envtether.models.project import ArchitectureInfo, ServiceDependency
 
 logger = logging.getLogger(__name__)
 

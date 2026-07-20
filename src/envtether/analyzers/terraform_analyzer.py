@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 import re
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from envtether.models.config import (
     ConfigSource,
@@ -19,6 +19,9 @@ from envtether.models.config import (
     ConfigVariable,
     VariableLocation,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +45,7 @@ _DESCRIPTION_RE = re.compile(
 
 # Regex to match environment variable references in resource blocks
 _ENV_BLOCK_RE = re.compile(
-    r'environment\s*\{[^}]*variables\s*=\s*\{([^}]*)\}',
+    r"environment\s*\{[^}]*variables\s*=\s*\{([^}]*)\}",
     re.DOTALL,
 )
 
@@ -52,7 +55,7 @@ _ENV_VAR_RE = re.compile(
 
 # Regex for locals block key-value pairs
 _LOCALS_RE = re.compile(
-    r'locals\s*\{([^}]*)\}',
+    r"locals\s*\{([^}]*)\}",
     re.DOTALL,
 )
 

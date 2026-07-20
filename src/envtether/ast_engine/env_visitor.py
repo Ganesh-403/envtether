@@ -149,8 +149,10 @@ class EnvVarVisitor(ast.NodeVisitor):
                 break
 
         # If there's no default at all for os.getenv, it defaults to None
-        if call_type == "os.getenv" and len(node.args) < 2 and not any(
-            kw.arg == "default" for kw in node.keywords
+        if (
+            call_type == "os.getenv"
+            and len(node.args) < 2
+            and not any(kw.arg == "default" for kw in node.keywords)
         ):
             is_required = False
             default_is_none = True

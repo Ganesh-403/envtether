@@ -7,11 +7,14 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import networkx as nx  # type: ignore[import-untyped]
 
 from envtether.exceptions import GraphExportError
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +56,7 @@ class GraphExporter:
             safe_id = self._safe_mermaid_id(node)
             safe_label = label.replace('"', "'")
             open_bracket, close_bracket = _MERMAID_SHAPES.get(node_type, ("[", "]"))
-            lines.append(f"    {safe_id}{open_bracket}\"{safe_label}\"{close_bracket}")
+            lines.append(f'    {safe_id}{open_bracket}"{safe_label}"{close_bracket}')
 
         # Define edges
         for src, dst, data in graph.edges(data=True):
@@ -90,7 +93,7 @@ class GraphExporter:
         """
         lines: list[str] = [
             "digraph envtether {",
-            '    rankdir=LR;',
+            "    rankdir=LR;",
             '    node [fontname="Inter", fontsize=11];',
             '    edge [fontname="Inter", fontsize=9, color="#666"];',
             "",
@@ -100,9 +103,12 @@ class GraphExporter:
             node_type = data.get("node_type", "variable")
             label = data.get("label", node).replace('"', '\\"')
             colour = _NODE_COLOURS.get(node_type, "#999")
-            shape = {"variable": "ellipse", "file": "box", "service": "hexagon", "framework": "diamond"}.get(
-                node_type, "box"
-            )
+            shape = {
+                "variable": "ellipse",
+                "file": "box",
+                "service": "hexagon",
+                "framework": "diamond",
+            }.get(node_type, "box")
             safe = self._safe_dot_id(node)
             lines.append(
                 f'    {safe} [label="{label}", shape={shape}, '

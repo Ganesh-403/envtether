@@ -112,9 +112,7 @@ class HardcodedVisitor(ast.NodeVisitor):
             self._check_assignment(node.target.id, node.value, node)
         self.generic_visit(node)
 
-    def _check_assignment(
-        self, name: str, value_node: ast.expr, stmt: ast.stmt
-    ) -> None:
+    def _check_assignment(self, name: str, value_node: ast.expr, stmt: ast.stmt) -> None:
         """Check if a variable assignment looks like a hardcoded config/secret."""
         if not isinstance(value_node, ast.Constant):
             return

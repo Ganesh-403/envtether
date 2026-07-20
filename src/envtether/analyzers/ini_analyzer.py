@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import configparser
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from envtether.models.config import (
     ConfigSource,
@@ -12,6 +12,9 @@ from envtether.models.config import (
     ConfigVariable,
     VariableLocation,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +66,7 @@ class INIAnalyzer:
                     source = ConfigSource(
                         source_type=ConfigSourceType.INI_FILE,
                         location=location,
-                        raw_value=value if value else None,
+                        raw_value=value or None,
                         metadata={"section": section},
                     )
                     var = ConfigVariable(

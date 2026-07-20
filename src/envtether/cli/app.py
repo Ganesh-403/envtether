@@ -6,9 +6,8 @@ for all configuration intelligence operations.
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -62,7 +61,9 @@ def _run_analysis(path: Path, verbose: bool = False) -> FullReport:
 @app.command()
 def scan(
     path: Annotated[Path, typer.Argument(help="Path to the repository root.")] = Path("."),
-    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output.")] = False,
+    verbose: Annotated[
+        bool, typer.Option("--verbose", "-v", help="Enable verbose output.")
+    ] = False,
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON.")] = False,
 ) -> None:
     """Scan a repository and display configuration analysis results."""
@@ -115,11 +116,12 @@ def doctor(
         raise typer.Exit(code=1)
 
     critical_or_high = [
-        f for f in report.findings
-        if f.severity in {Severity.CRITICAL, Severity.HIGH}
+        f for f in report.findings if f.severity in {Severity.CRITICAL, Severity.HIGH}
     ]
     if critical_or_high:
-        console.print(f"\n[red bold]Doctor found {len(critical_or_high)} critical/high issues.[/red bold]")
+        console.print(
+            f"\n[red bold]Doctor found {len(critical_or_high)} critical/high issues.[/red bold]"
+        )
         raise typer.Exit(code=1)
 
     console.print("\n[green bold]All checks passed.[/green bold]")
@@ -144,7 +146,9 @@ def health(
 def secrets(
     path: Annotated[Path, typer.Argument(help="Path to the repository root.")] = Path("."),
     verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
-    redact: Annotated[bool, typer.Option("--redact", help="Redact secret values in output.")] = True,
+    redact: Annotated[
+        bool, typer.Option("--redact", help="Redact secret values in output.")
+    ] = True,
 ) -> None:
     """Scan for exposed secrets and credentials."""
     render_banner()
@@ -152,8 +156,7 @@ def secrets(
     report = _run_analysis(path, verbose)
 
     secret_findings = [
-        f for f in report.findings
-        if f.category.value in {"exposed_secret", "hardcoded_secret"}
+        f for f in report.findings if f.category.value in {"exposed_secret", "hardcoded_secret"}
     ]
 
     if not secret_findings:
@@ -170,8 +173,12 @@ def secrets(
 @app.command()
 def graph(
     path: Annotated[Path, typer.Argument(help="Path to the repository root.")] = Path("."),
-    output: Annotated[Path, typer.Option("--output", "-o", help="Output file path.")] = Path(".envtether/graph.mmd"),
-    fmt: Annotated[str, typer.Option("--format", "-f", help="Export format: mermaid, dot, json, html.")] = "mermaid",
+    output: Annotated[Path, typer.Option("--output", "-o", help="Output file path.")] = Path(
+        ".envtether/graph.mmd"
+    ),
+    fmt: Annotated[
+        str, typer.Option("--format", "-f", help="Export format: mermaid, dot, json, html.")
+    ] = "mermaid",
     verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
 ) -> None:
     """Generate a configuration dependency graph."""
@@ -189,7 +196,7 @@ def graph(
         transient=True,
     ) as progress:
         progress.add_task("Analysing...", total=None)
-        report = engine.analyze(path)
+        engine.analyze(path)
 
     exporter = GraphExporter()
     nx_graph = engine.graph_builder.graph
@@ -202,7 +209,9 @@ def graph(
 def report(
     path: Annotated[Path, typer.Argument(help="Path to the repository root.")] = Path("."),
     output: Annotated[Path, typer.Option("--output", "-o")] = Path(".envtether/report.md"),
-    fmt: Annotated[str, typer.Option("--format", "-f", help="Format: markdown, html, json, csv, sarif.")] = "markdown",
+    fmt: Annotated[
+        str, typer.Option("--format", "-f", help="Format: markdown, html, json, csv, sarif.")
+    ] = "markdown",
     verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
 ) -> None:
     """Generate a configuration analysis report."""
@@ -233,7 +242,9 @@ def report(
 def docs(
     path: Annotated[Path, typer.Argument(help="Path to the repository root.")] = Path("."),
     output: Annotated[Path, typer.Option("--output", "-o")] = Path(".envtether/config-docs.md"),
-    fmt: Annotated[str, typer.Option("--format", "-f", help="Format: markdown or html.")] = "markdown",
+    fmt: Annotated[
+        str, typer.Option("--format", "-f", help="Format: markdown or html.")
+    ] = "markdown",
     verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
 ) -> None:
     """Generate configuration documentation."""
@@ -262,7 +273,9 @@ def explain(
 @app.command(name="ci")
 def ci_check(
     path: Annotated[Path, typer.Argument(help="Path to the repository root.")] = Path("."),
-    format_output: Annotated[str, typer.Option("--format", "-f", help="Output format: text, json, sarif.")] = "text",
+    format_output: Annotated[
+        str, typer.Option("--format", "-f", help="Output format: text, json, sarif.")
+    ] = "text",
     verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
 ) -> None:
     """Run CI-optimised analysis with machine-readable output.
@@ -292,8 +305,7 @@ def ci_check(
         output_console.print(f"Findings: {total} (critical={critical}, high={high})")
 
     critical_or_high = [
-        f for f in full_report.findings
-        if f.severity in {Severity.CRITICAL, Severity.HIGH}
+        f for f in full_report.findings if f.severity in {Severity.CRITICAL, Severity.HIGH}
     ]
     if critical_or_high:
         raise typer.Exit(code=1)
@@ -331,7 +343,9 @@ def init(
 def fix(
     path: Annotated[Path, typer.Argument(help="Path to the repository root.")] = Path("."),
     verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
-    dry_run: Annotated[bool, typer.Option("--dry-run", help="Show what would be fixed without making changes.")] = False,
+    dry_run: Annotated[
+        bool, typer.Option("--dry-run", help="Show what would be fixed without making changes.")
+    ] = False,
 ) -> None:
     """Auto-fix configuration issues where possible.
 

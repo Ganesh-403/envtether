@@ -18,7 +18,7 @@ from envtether.security.entropy import shannon_entropy
 class TestSecretDetector:
     """Tests for SecretDetector."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def detector(self) -> SecretDetector:
         return SecretDetector(SecurityConfig())
 
@@ -39,7 +39,7 @@ class TestSecretDetector:
     def test_detect_aws_access_key(self, detector: SecretDetector) -> None:
         var = self._create_variable("MY_KEY", "AKIAIOSFODNN7EXAMPLE")
         findings = detector.scan_variables([var])
-        
+
         assert len(findings) == 1
         assert findings[0].category.value == "exposed_secret"
         assert "AWS Access Key ID" in findings[0].description
@@ -48,20 +48,20 @@ class TestSecretDetector:
         # High entropy but no specific pattern
         var = self._create_variable("WEIRD_TOKEN", "x8f93qjd8c4m1!@#$%^&*()_+-=[]{}|;':,./<>?~`")
         findings = detector.scan_variables([var])
-        
+
         assert len(findings) == 1
         assert "high entropy" in findings[0].description.lower()
-        
+
     def test_ignore_low_entropy_non_secrets(self, detector: SecretDetector) -> None:
         var = self._create_variable("APP_NAME", "my-awesome-app")
         findings = detector.scan_variables([var])
-        
+
         assert len(findings) == 0
 
     def test_scan_text(self, detector: SecretDetector) -> None:
         text = "RUN echo 'AKIAIOSFODNN7EXAMPLE' > /etc/aws/credentials\n"
         findings = detector.scan_text(text, "Dockerfile")
-        
+
         assert len(findings) == 1
         assert "AWS Access Key ID" in findings[0].title
 

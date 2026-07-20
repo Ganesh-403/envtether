@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import ast
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from envtether.models.config import (
     ConfigSource,
@@ -30,6 +30,9 @@ from envtether.utils.hashing import deterministic_id
 from .env_visitor import EnvVarVisitor
 from .hardcoded_visitor import HardcodedVisitor
 from .pydantic_visitor import PydanticSettingsVisitor
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 

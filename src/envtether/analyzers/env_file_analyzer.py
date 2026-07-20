@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 import re
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from envtether.models.config import (
     ConfigSource,
@@ -23,6 +23,9 @@ from envtether.models.config import (
     VariableLocation,
 )
 from envtether.scanner.file_classifier import FileType
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -134,9 +137,8 @@ class EnvFileAnalyzer:
         Returns:
             The unquoted value.
         """
-        if len(value) >= 2:
-            if (value.startswith('"') and value.endswith('"')) or (
-                value.startswith("'") and value.endswith("'")
-            ):
-                return value[1:-1]
+        if len(value) >= 2 and ((value.startswith('"') and value.endswith('"')) or (
+            value.startswith("'") and value.endswith("'")
+        )):
+            return value[1:-1]
         return value

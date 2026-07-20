@@ -8,7 +8,7 @@ have their own dedicated analysers.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
 
@@ -18,6 +18,9 @@ from envtether.models.config import (
     ConfigVariable,
     VariableLocation,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -81,30 +84,32 @@ class YAMLAnalyzer:
                 self._walk(value, relative_path, source_lines, variables, prefix=full_key)
             elif isinstance(value, list):
                 continue
-            else:
-                # Only include keys that look like env vars or are in known config sections
-                if self._is_env_like(str_key) or prefix.lower() in {
-                    "env", "environment", "config", "settings",
-                }:
-                    line_no = self._find_key_line(source_lines, str_key)
-                    location = VariableLocation(
-                        file_path=relative_path,
-                        line=line_no,
-                        column=0,
-                        snippet=source_lines[line_no - 1] if line_no <= len(source_lines) else "",
-                    )
-                    source = ConfigSource(
-                        source_type=ConfigSourceType.YAML_FILE,
-                        location=location,
-                        raw_value=str(value) if value is not None else None,
-                        metadata={"yaml_path": full_key},
-                    )
-                    var = ConfigVariable(
-                        name=str_key if self._is_env_like(str_key) else full_key,
-                        sources=(source,),
-                        tags=frozenset({"yaml"}),
-                    )
-                    variables.append(var)
+            # Only include keys that look like env vars or are in known config sections
+            elif self._is_env_like(str_key) or prefix.lower() in {
+                "env",
+                "environment",
+                "config",
+                "settings",
+            }:
+                line_no = self._find_key_line(source_lines, str_key)
+                location = VariableLocation(
+                    file_path=relative_path,
+                    line=line_no,
+                    column=0,
+                    snippet=source_lines[line_no - 1] if line_no <= len(source_lines) else "",
+                )
+                source = ConfigSource(
+                    source_type=ConfigSourceType.YAML_FILE,
+                    location=location,
+                    raw_value=str(value) if value is not None else None,
+                    metadata={"yaml_path": full_key},
+                )
+                var = ConfigVariable(
+                    name=str_key if self._is_env_like(str_key) else full_key,
+                    sources=(source,),
+                    tags=frozenset({"yaml"}),
+                )
+                variables.append(var)
 
     @staticmethod
     def _is_env_like(key: str) -> bool:
