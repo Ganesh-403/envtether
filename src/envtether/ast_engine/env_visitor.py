@@ -62,7 +62,7 @@ class EnvVarVisitor(ast.NodeVisitor):
         self.generic_visit(node)
         self._scope_stack.pop()
 
-    visit_AsyncFunctionDef = visit_FunctionDef
+    visit_AsyncFunctionDef = visit_FunctionDef  # type: ignore[assignment]
 
     def visit_Call(self, node: ast.Call) -> None:
         """Detect os.getenv() and os.environ.get() calls."""

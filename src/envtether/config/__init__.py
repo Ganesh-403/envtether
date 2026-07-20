@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 if TYPE_CHECKING:
     from pathlib import Path
 
-import tomllib  # type: ignore[import-untyped]
+import tomllib
 
 _DEFAULT_IGNORE_DIRS: frozenset[str] = frozenset(
     {

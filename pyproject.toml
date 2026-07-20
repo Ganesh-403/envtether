@@ -153,6 +153,9 @@ ignore = [
     "ERA001",   # commented-out code (intentional descriptive comments explaining code constructs)
     "S104",     # binding to all interfaces (intentional in hostname whitelist sets like 0.0.0.0)
     "S105",     # possible hardcoded password (intentional enum constant name strings)
+    "TC001",    # move import to type-checking block (disabled: Pydantic needs these at runtime)
+    "TC002",    # move third-party import to type-checking block (disabled for Pydantic runtime requirements)
+    "TC003",    # move stdlib import to type-checking block (disabled for consistency)
 ]
 
 [tool.ruff.lint.per-file-ignores]

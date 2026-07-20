@@ -10,12 +10,10 @@ from __future__ import annotations
 
 import enum
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
-if TYPE_CHECKING:
-    from .config import VariableLocation
+from .config import VariableLocation
 
 
 class Severity(enum.StrEnum):

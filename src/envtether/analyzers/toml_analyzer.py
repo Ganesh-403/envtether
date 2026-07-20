@@ -15,7 +15,7 @@ from envtether.models.config import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-import tomllib  # type: ignore[import-untyped]
+import tomllib
 
 logger = logging.getLogger(__name__)
 

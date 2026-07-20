@@ -7,12 +7,10 @@ produces a composite score from 0 to 100.
 from __future__ import annotations
 
 import enum
-from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
-if TYPE_CHECKING:
-    from .findings import Recommendation
+from .findings import Recommendation
 
 
 class ScoreDimension(enum.StrEnum):
